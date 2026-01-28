@@ -1,8 +1,31 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/main.py"
-    }
-  ]
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/main.py"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/mcp",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "text/event-stream"
+                },
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache, no-transform"
+                },
+                {
+                    "key": "Connection",
+                    "value": "keep-alive"
+                },
+                {
+                    "key": "X-Accel-Buffering",
+                    "value": "no"
+                }
+            ]
+        }
+    ]
 }
