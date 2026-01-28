@@ -107,6 +107,30 @@ async def app(scope, receive, send):
         print(f"  → Handling POST message")
         # Client messages endpoint
         await sse_transport.handle_post_message(scope, receive, send)
+    elif path == '/meow':
+        # Add simple GET endpoint for easy testing
+        try:
+            block_number = await get_eth_block_number()
+            message = f"Meow {block_number}"
+            await send({
+                'type': 'http.response.start',
+                'status': 200,
+                'headers': [[b'content-type', b'application/json']],
+            })
+            await send({
+                'type': 'http.response.body',
+                'body': json.dumps({"message": message}).encode('utf-8'),
+            })
+        except Exception as e:
+            await send({
+                'type': 'http.response.start',
+                'status': 500,
+                'headers': [[b'content-type', b'text/plain']],
+            })
+            await send({
+                'type': 'http.response.body',
+                'body': str(e).encode('utf-8'),
+            })
     else:
         # 404 for other paths
         print(f"  → 404: {path}")
@@ -128,6 +152,7 @@ async def main():
     print("=" * 60)
     print("🔌 MCP Endpoint: http://0.0.0.0:8000/mcp")
     print("📮 Messages: http://0.0.0.0:8000/messages")
+    print("😺 Simple GET: http://0.0.0.0:8000/meow")
     print("=" * 60)
     print()
     
