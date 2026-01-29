@@ -13,17 +13,17 @@ from mcp.server.transport_security import TransportSecuritySettings
 
 ETH_RPC_URL = os.getenv("ETH_RPC_URL", "https://eth.llamarpc.com")
 DEFAULT_TIMEOUT_S = float(os.getenv("ETH_RPC_TIMEOUT_S", "30"))
-MCP_MOUNT_PATH = os.getenv("MCP_MOUNT_PATH", "/")
-
-
-def _normalize_mount_path(path: str) -> str:
-    if path.startswith("/"):
-        return path
-    return f"/{path}"
+DEFAULT_ALLOWED_HOSTS = [
+    "meowblock-mcp.xeift.tw",
+    "meowblock-mcp.xeift.tw:*",
+    "meow-block.xeift.tw",
+    "meow-block.xeift.tw:*",
+]
 
 
 def _parse_allowed_hosts(value: str) -> list[str]:
-    return [item.strip() for item in value.split(",") if item.strip()]
+    hosts = [item.strip() for item in value.split(",") if item.strip()]
+    return hosts or DEFAULT_ALLOWED_HOSTS
 
 
 def _make_fastmcp() -> FastMCP:
@@ -34,13 +34,11 @@ def _make_fastmcp() -> FastMCP:
     if "json_response" in sig.parameters:
         kwargs["json_response"] = True
     if "transport_security" in sig.parameters:
-        allowed_hosts = _parse_allowed_hosts(os.getenv("MCP_ALLOWED_HOSTS", ""))
-        if allowed_hosts:
-            kwargs["transport_security"] = TransportSecuritySettings(
-                enable_dns_rebinding_protection=True,
-                allowed_hosts=allowed_hosts,
-                allowed_origins=[],
-            )
+        kwargs["transport_security"] = TransportSecuritySettings(
+            enable_dns_rebinding_protection=True,
+            allowed_hosts=_parse_allowed_hosts(os.getenv("MCP_ALLOWED_HOSTS", "")),
+            allowed_origins=[],
+        )
     return FastMCP(**kwargs)
 
 
@@ -73,7 +71,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.mount(_normalize_mount_path(MCP_MOUNT_PATH), mcp.streamable_http_app())
+app.mount("/", mcp.streamable_http_app())
 
 
 @app.get("/healthz")
