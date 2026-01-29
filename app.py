@@ -13,7 +13,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 
 ETH_RPC_URL = os.getenv("ETH_RPC_URL", "https://eth.llamarpc.com")
 DEFAULT_TIMEOUT_S = float(os.getenv("ETH_RPC_TIMEOUT_S", "30"))
-MCP_MOUNT_PATH = os.getenv("MCP_MOUNT_PATH", "/mcp")
+MCP_MOUNT_PATH = os.getenv("MCP_MOUNT_PATH", "/")
 
 
 def _normalize_mount_path(path: str) -> str:
