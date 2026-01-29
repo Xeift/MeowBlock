@@ -15,7 +15,54 @@ from starlette.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-ETH_RPC_URL = os.getenv("ETH_RPC_URL", "https://eth.llamarpc.com")
+DEFAULT_PRIMARY_RPC_URL = "https://eth.llamarpc.com"
+DEFAULT_FALLBACK_RPC_URLS = [
+    "https://eth.drpc.org",
+    "https://ethereum-mainnet.gateway.tatum.io",
+    "https://eth-mainnet.nodereal.io/v1/1659dfb40aa24bbb8153a677b98064d7",
+    "https://eth1.lava.build",
+    "https://gateway.tenderly.co/public/mainnet",
+    "https://eth.api.onfinality.io/public",
+    "https://mainnet.gateway.tenderly.co",
+    "https://eth.blockrazor.xyz",
+    "https://ethereum-rpc.publicnode.com",
+    "https://rpc.fullsend.to",
+    "https://virginia.rpc.blxrbdn.com",
+    "https://eth.rpc.blxrbdn.com",
+    "https://singapore.rpc.blxrbdn.com",
+    "https://uk.rpc.blxrbdn.com",
+    "https://eth.llamarpc.com",
+    "https://1rpc.io/eth",
+    "https://eth.merkle.io",
+    "https://eth-mainnet.public.blastapi.io",
+    "https://rpc.eth.gateway.fm",
+    "https://ethereum-json-rpc.stakely.io",
+    "https://0xrpc.io/eth",
+    "https://eth-mainnet.rpcfast.com?api_key=xbhWBI1Wkguk8SNMu1bvvLurPGLXmgwYeC4S6g2H7WdwFigZSmPWVZRxrskEQwIf",
+    "https://ethereum-public.nodies.app",
+    "https://eth.meowrpc.com",
+    "https://endpoints.omniatech.io/v1/eth/mainnet/public",
+    "https://ethereum.public.blockpi.network/v1/rpc/public",
+    "https://public-eth.nownodes.io",
+    "https://rpc.flashbots.net/fast",
+    "https://api.zan.top/eth-mainnet",
+    "https://ethereum.rpc.subquery.network/public",
+    "https://rpc.mevblocker.io",
+    "https://rpc.mevblocker.io/noreverts",
+    "https://rpc.mevblocker.io/fullprivacy",
+    "https://rpc.mevblocker.io/fast",
+    "https://rpc.flashbots.net",
+]
+ETH_RPC_URLS = list(
+    dict.fromkeys(
+        url
+        for url in [
+            os.getenv("ETH_RPC_URL", DEFAULT_PRIMARY_RPC_URL),
+            *DEFAULT_FALLBACK_RPC_URLS,
+        ]
+        if url
+    )
+)
 DEFAULT_TIMEOUT_S = float(os.getenv("ETH_RPC_TIMEOUT_S", "30"))
 DEFAULT_ALLOWED_HOSTS = [
     "meowblock-mcp.xeift.tw",
@@ -74,10 +121,17 @@ async def call_eth_rpc(
         "id": request_id,
     }
     headers = {"Content-Type": "application/json", "User-Agent": "MeowBlock/1.0"}
+    last_error: Exception | None = None
     async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_S) as client:
-        response = await client.post(ETH_RPC_URL, json=payload, headers=headers)
-    response.raise_for_status()
-    return response.json()
+        for rpc_url in ETH_RPC_URLS:
+            try:
+                response = await client.post(rpc_url, json=payload, headers=headers)
+                response.raise_for_status()
+                return response.json()
+            except (httpx.HTTPError, ValueError) as exc:
+                last_error = exc
+                continue
+    raise RuntimeError("All Ethereum RPC endpoints failed") from last_error
 
 
 async def get_eth_block_number() -> int:
