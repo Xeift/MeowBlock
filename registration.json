@@ -1,7 +1,7 @@
 {
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "MeowBlock",
-  "description": "A MCP server that provides a meow twist on Ethereum block numbers and a generic tool to call any Ethereum JSON-RPC method.",
+  "description": "A MCP server that provides a meow twist on Ethereum block numbers and a generic tool to call any Ethereum JSON-RPC method. Completely free to use. Rate limit: 60 requests per minute per IP.",
   "image": "https://cdn.meowblock.io/logo.png",
   "services": [
     {
