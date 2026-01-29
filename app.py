@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import inspect
 import os
+import time
+from collections import deque
 from typing import Any, Dict
 
 import httpx
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from starlette.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
@@ -19,6 +23,10 @@ DEFAULT_ALLOWED_HOSTS = [
     "meow-block.xeift.tw",
     "meow-block.xeift.tw:*",
 ]
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+RATE_LIMIT_WINDOW_S = 60.0
+_rate_limit_lock = asyncio.Lock()
+_rate_limit_log: dict[str, deque[float]] = {}
 
 
 def _parse_allowed_hosts(value: str) -> list[str]:
@@ -43,6 +51,15 @@ def _make_fastmcp() -> FastMCP:
 
 
 mcp = _make_fastmcp()
+
+
+def _get_client_ip(request: Request) -> str:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    if request.client:
+        return request.client.host
+    return "unknown"
 
 
 async def call_eth_rpc(
@@ -92,6 +109,31 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    client_ip = _get_client_ip(request)
+    now = time.monotonic()
+    async with _rate_limit_lock:
+        timestamps = _rate_limit_log.get(client_ip)
+        if timestamps is None:
+            timestamps = deque()
+            _rate_limit_log[client_ip] = timestamps
+        cutoff = now - RATE_LIMIT_WINDOW_S
+        while timestamps and timestamps[0] < cutoff:
+            timestamps.popleft()
+        if len(timestamps) >= RATE_LIMIT_PER_MINUTE:
+            retry_after = max(
+                0, int(RATE_LIMIT_WINDOW_S - (now - timestamps[0]))
+            )
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded"},
+                headers={"Retry-After": str(retry_after)},
+            )
+        timestamps.append(now)
+    return await call_next(request)
 
 app.mount("/", mcp.streamable_http_app())
 
