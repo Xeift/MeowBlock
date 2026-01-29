@@ -1,4 +1,4 @@
-mcp>=1.0.0
-fastapi>=0.100.0
-sse-starlette>=1.8.0
-uvicorn>=0.20.0
+fastapi
+uvicorn
+httpx
+mcp[cli]
