@@ -11,9 +11,9 @@ from typing import Any, Dict
 import httpx
 import uvicorn
 from fastapi import FastAPI, Request
-from starlette.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.responses import JSONResponse
 
 DEFAULT_PRIMARY_RPC_URL = "https://eth.llamarpc.com"
 DEFAULT_FALLBACK_RPC_URLS = [
@@ -65,8 +65,6 @@ ETH_RPC_URLS = list(
 )
 DEFAULT_TIMEOUT_S = float(os.getenv("ETH_RPC_TIMEOUT_S", "30"))
 DEFAULT_ALLOWED_HOSTS = [
-    "meowblock-mcp.xeift.tw",
-    "meowblock-mcp.xeift.tw:*",
     "meow-block.xeift.tw",
     "meow-block.xeift.tw:*",
 ]
