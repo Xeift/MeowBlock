@@ -1,17 +1,36 @@
 {
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "MeowBlock",
-  "description": "A MCP server that provides a generic tool to call any Ethereum JSON-RPC method. Completely free to use. Rate limit: 60 requests per minute per IP. Code: https://github.com/Xeift/MeowBlock",
+  "description": "An MCP server exposing Ethereum JSON-RPC access via a generic tool. Free to use. Rate limit: 60 requests/minute/IP. Source code: https://github.com/Xeift/MeowBlock",
   "image": "https://raw.githubusercontent.com/Xeift/MeowBlock/refs/heads/main/pfp.png",
   "services": [
     {
       "name": "MCP",
       "endpoint": "https://meow-block.xeift.tw/mcp",
       "version": "2026-01-29",
-      "mcpTools": ["meow", "eth_rpc"]
+      "x_mcpTools": ["meow", "eth_rpc"]
+    },
+    {
+      "name": "OASF",
+      "endpoint": "https://raw.githubusercontent.com/Xeift/MeowBlock/main/oasf-record.json",
+      "version": "0.8.0",
+      "skills": [
+        "tool_interaction/api_schema_understanding",
+        "tool_interaction/workflow_automation",
+        "tool_interaction/tool_use_planning"
+      ],
+      "domains": [
+        "technology/blockchain",
+        "technology/software_engineering/apis_integration"
+      ]
     }
   ],
-  "registrations": [],
+  "registrations": [
+    {
+      "agentId": 6809,
+      "agentRegistry": "eip155:1:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    }
+  ],
   "supportedTrust": ["reputation"],
   "active": true,
   "x402Support": false
