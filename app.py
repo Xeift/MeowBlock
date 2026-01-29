@@ -45,13 +45,26 @@ def _make_fastmcp() -> FastMCP:
 mcp = _make_fastmcp()
 
 
-async def get_eth_block_number() -> int:
-    payload = {"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1}
+async def call_eth_rpc(
+    method: str,
+    params: list[Any] | dict[str, Any] | None = None,
+    request_id: int | str = 1,
+) -> dict[str, Any]:
+    payload = {
+        "jsonrpc": "2.0",
+        "method": method,
+        "params": [] if params is None else params,
+        "id": request_id,
+    }
     headers = {"Content-Type": "application/json", "User-Agent": "MeowBlock/1.0"}
     async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_S) as client:
         response = await client.post(ETH_RPC_URL, json=payload, headers=headers)
     response.raise_for_status()
-    response_json = response.json()
+    return response.json()
+
+
+async def get_eth_block_number() -> int:
+    response_json = await call_eth_rpc("eth_blockNumber")
     if "error" in response_json:
         raise RuntimeError(f"RPC Error: {response_json['error']['message']}")
     return int(response_json["result"], 16)
@@ -61,6 +74,15 @@ async def get_eth_block_number() -> int:
 async def meow() -> str:
     block_number = await get_eth_block_number()
     return f"Meow {block_number}"
+
+
+@mcp.tool(name="eth_rpc")
+async def eth_rpc(
+    method: str,
+    params: list[Any] | dict[str, Any] | None = None,
+    request_id: int | str = 1,
+) -> dict[str, Any]:
+    return await call_eth_rpc(method=method, params=params, request_id=request_id)
 
 
 @contextlib.asynccontextmanager

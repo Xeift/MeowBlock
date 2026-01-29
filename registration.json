@@ -1,22 +1,18 @@
 {
-    "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
-    "name": "MeowBlock",
-    "description": "A Model Context Protocol (MCP) server that provides Ethereum blockchain information with a meow twist! Main tool 'meow' returns the current Ethereum block number.",
-    "image": "https://cdn.meowblock.io/logo.png",
-    "services": [
-        {
-            "name": "MCP",
-            "endpoint": "https://INSERT_YOUR_NGROK_URL_HERE/mcp",
-            "version": "2026-01-28",
-            "mcpTools": [
-                "meow"
-            ]
-        }
-    ],
-    "registrations": [],
-    "supportedTrust": [
-        "reputation"
-    ],
-    "active": true,
-    "x402Support": false
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "MeowBlock",
+  "description": "A MCP server that provides a meow twist on Ethereum block numbers and a generic tool to call any Ethereum JSON-RPC method.",
+  "image": "https://cdn.meowblock.io/logo.png",
+  "services": [
+    {
+      "name": "MCP",
+      "endpoint": "https://meow-block.xeift.tw/mcp",
+      "version": "2026-01-29",
+      "mcpTools": ["meow", "eth_rpc"]
+    }
+  ],
+  "registrations": [],
+  "supportedTrust": ["reputation"],
+  "active": true,
+  "x402Support": false
 }
