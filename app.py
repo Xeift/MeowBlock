@@ -67,6 +67,10 @@ DEFAULT_TIMEOUT_S = float(os.getenv("ETH_RPC_TIMEOUT_S", "30"))
 DEFAULT_ALLOWED_HOSTS = [
     "meow-block.xeift.tw",
     "meow-block.xeift.tw:*",
+    "localhost",
+    "localhost:*",
+    "127.0.0.1",
+    "127.0.0.1:*",
 ]
 RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
 RATE_LIMIT_WINDOW_S = 60.0
@@ -86,6 +90,8 @@ def _make_fastmcp() -> FastMCP:
         kwargs["stateless_http"] = True
     if "json_response" in sig.parameters:
         kwargs["json_response"] = True
+    if "streamable_http_path" in sig.parameters:
+        kwargs["streamable_http_path"] = "/"
     if "transport_security" in sig.parameters:
         kwargs["transport_security"] = TransportSecuritySettings(
             enable_dns_rebinding_protection=True,
@@ -187,12 +193,31 @@ async def rate_limit_middleware(request: Request, call_next):
         timestamps.append(now)
     return await call_next(request)
 
-app.mount("/", mcp.streamable_http_app())
+app.mount("/mcp", mcp.streamable_http_app())
 
 
 @app.get("/healthz")
 async def healthz() -> dict[str, bool]:
     return {"ok": True}
+
+
+@app.post("/rpc")
+async def rpc_proxy(request: Request):
+    try:
+        payload = await request.json()
+    except ValueError:
+        return JSONResponse(status_code=400, content={"error": "Invalid JSON body"})
+    if not isinstance(payload, dict):
+        return JSONResponse(status_code=400, content={"error": "Expected JSON object"})
+    method = payload.get("method")
+    if not isinstance(method, str) or not method:
+        return JSONResponse(status_code=400, content={"error": "Missing JSON-RPC method"})
+    params = payload.get("params")
+    request_id = payload.get("id", 1)
+    try:
+        return await call_eth_rpc(method=method, params=params, request_id=request_id)
+    except RuntimeError as exc:
+        return JSONResponse(status_code=502, content={"error": str(exc)})
 
 
 if __name__ == "__main__":
