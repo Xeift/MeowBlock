@@ -11,6 +11,16 @@
       "x_mcpTools": ["meow", "eth_rpc"]
     },
     {
+      "name": "HTTP-JSON-RPC",
+      "endpoint": "https://meow-block.xeift.tw/rpc",
+      "version": "2026-01-30"
+    },
+    {
+      "name": "Health",
+      "endpoint": "https://meow-block.xeift.tw/healthz",
+      "version": "2026-01-30"
+    },
+    {
       "name": "OASF",
       "endpoint": "https://raw.githubusercontent.com/Xeift/MeowBlock/main/oasf-record.json",
       "version": "0.8.0",
