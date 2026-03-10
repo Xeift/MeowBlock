@@ -19,6 +19,8 @@ It is also registered under ERC-8004 on Ethereum mainnet as agent #6809 ( [8004s
 - Ready for deployment on Vercel
 
 ## Use MeowBlock in ChatGPT Web!
+<img width="1920" height="1080" alt="gpt" src="https://github.com/user-attachments/assets/0b0b7950-182a-4580-aefe-6e6dc0325949" />
+
 You will need ChatGPT Plus to use custom connectors.
 <details>
 <summary>Steps (click to expand)</summary>
